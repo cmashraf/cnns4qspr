@@ -1,0 +1,54 @@
+# what language
+language: python
+
+# what versions of python
+python:
+  - "3.6"
+
+# what branches should be evaluated
+branches:
+    only:
+        - master
+
+# commands to prepare the conda install - download the latest conda
+# and install it and add to path
+before_install:
+    - pwd
+    - curl -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    - chmod +x miniconda.sh
+    - ./miniconda.sh -b
+    - export PATH=/home/travis/miniconda3/bin:$PATH
+    - conda update --yes conda
+    - source $(conda info --root)/etc/profile.d/conda.sh
+
+
+install:
+    - conda create --yes -n test-environment python=$TRAVIS_PYTHON_VERSION
+    - conda activate test-environment
+# install the dependencies of the cnns4qspr repo
+    - conda install --yes pytorch torchvision -c pytorch
+    - conda install --yes -c conda-forge biopandas
+    - conda install --yes plotly
+
+# go into the environment site-packages, install lie-learn
+    - cd $(conda info --root)/envs/test-environment/lib/python3.6/site-packages/
+    - git clone https://github.com/AMLab-Amsterdam/lie_learn
+    - cd lie_learn
+    - python setup.py install
+    - cd ..
+# installing the forked se3cnn repo from our CNNs4QSPR organization
+# also in the site-packages
+    - git clone https://github.com/CNNs4QSPR/se3cnn.git
+    - cd se3cnn
+    - python setup.py install
+# installing things relevant to unit testing
+    - conda install --yes -c anaconda coverage
+    - conda install --yes -c conda-forge coveralls
+
+script:
+    - cd /home/travis/build/CNNs4QSPR/cnns4qspr
+    - coverage run -m unittest discover
+
+after_success:
+    - coverage report
+    - coveralls

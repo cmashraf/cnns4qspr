@@ -1,3 +1,11 @@
+# Cache files
+*.cache
+*mutex
+
+# Testing scripts
+test.py
+voxels.npy
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
